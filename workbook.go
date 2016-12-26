@@ -301,3 +301,32 @@ func (w *WorkBook) ReadAllCells(max int) (res [][]string) {
 	}
 	return
 }
+func (w *WorkBook) ReadAllCellsMap() (res map[string][][]string) {
+	res = make(map[string][][]string)
+	for _, sheet := range w.sheets {
+		w.prepareSheet(sheet)
+		if sheet.MaxRow != 0 {
+			leng := int(sheet.MaxRow) + 1
+			temp := make([][]string, leng)
+			for k, row := range sheet.Rows {
+				data := make([]string, 0)
+				if len(row.Cols) > 0 {
+					for _, col := range row.Cols {
+						if uint16(len(data)) <= col.LastCol() {
+							data = append(data, make([]string, col.LastCol()-uint16(len(data))+1)...)
+						}
+						str := col.String(w)
+
+						for i := uint16(0); i < col.LastCol()-col.FirstCol()+1; i++ {
+							data[col.FirstCol()+i] = str[i]
+						}
+					}
+					temp[k] = data
+				}
+			}
+			res[sheet.Name] = temp
+		}
+	}
+
+	return
+}
